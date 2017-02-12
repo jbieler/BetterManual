@@ -2,46 +2,29 @@ package com.github.ma1co.pmcademo.app;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.View;
+import android.widget.ScrollView;
+import android.widget.TextView;
 
+import com.github.jbieler.holygrail.app.R;
 import com.github.ma1co.openmemories.framework.DeviceInfo;
 import com.sony.scalar.hardware.avio.DisplayManager;
 import com.sony.scalar.sysutil.ScalarInput;
 import com.sony.scalar.sysutil.didep.Gpelibrary;
+import com.sony.scalar.sysutil.didep.ScalarSystemManager;
+
+import java.util.logging.Logger;
 
 public class BaseActivity extends Activity {
-    public static final String NOTIFICATION_DISPLAY_CHANGED = "NOTIFICATION_DISPLAY_CHANGED";
 
-    private DisplayManager displayManager;
-
-    @Override
-    protected void onResume() {
-        Logger.info("Resume " + getComponentName().getClassName());
-        super.onResume();
-
-        setColorDepth(true);
-        notifyAppInfo();
-
-        displayManager = new DisplayManager();
-        displayManager.setDisplayStatusListener(new DisplayManager.DisplayEventListener() {
-            @Override
-            public void onDeviceStatusChanged(int event) {
-                if (event == DisplayManager.EVENT_SWITCH_DEVICE)
-                    onDisplayChanged(displayManager.getActiveDevice());
-            }
-        });
-    }
-
-    @Override
-    protected void onPause() {
-        Logger.info("Pause " + getComponentName().getClassName());
-        super.onPause();
-
-        setColorDepth(false);
-
-        displayManager.releaseDisplayStatusListener();
-        displayManager.finish();
-        displayManager = null;
+    protected void setAutoPowerOffMode(boolean enable) {
+        String mode = enable ? "APO/NORMAL" : "APO/NO";// or "APO/SPECIAL" ?
+        Intent intent = new Intent();
+        intent.setAction("com.android.server.DAConnectionManagerService.apo");
+        intent.putExtra("apo_info", mode);
+        sendBroadcast(intent);
     }
 
     @Override
@@ -184,42 +167,7 @@ public class BaseActivity extends Activity {
         return true;
     }
     protected boolean onDeleteKeyUp() {
-        onBackPressed();
+        System.exit(0);
         return true;
-    }
-
-    public void onDisplayChanged(String device) {
-        AppNotificationManager.getInstance().notify(NOTIFICATION_DISPLAY_CHANGED);
-    }
-
-    protected void setAutoPowerOffMode(boolean enable) {
-        String mode = enable ? "APO/NORMAL" : "APO/NO";// or "APO/SPECIAL" ?
-        Intent intent = new Intent();
-        intent.setAction("com.android.server.DAConnectionManagerService.apo");
-        intent.putExtra("apo_info", mode);
-        sendBroadcast(intent);
-    }
-
-    protected void setColorDepth(boolean highQuality) {
-        Gpelibrary.GS_FRAMEBUFFER_TYPE type = highQuality ? Gpelibrary.GS_FRAMEBUFFER_TYPE.ABGR8888 : Gpelibrary.GS_FRAMEBUFFER_TYPE.RGBA4444;
-        Gpelibrary.changeFrameBufferPixel(type);
-    }
-
-    protected void notifyAppInfo() {
-        Intent intent = new Intent("com.android.server.DAConnectionManagerService.AppInfoReceive");
-        intent.putExtra("package_name", getComponentName().getPackageName());
-        intent.putExtra("class_name", getComponentName().getClassName());
-        //intent.putExtra("pkey", new String[] {});// either this or these two:
-        //intent.putExtra("pullingback_key", new String[] {});
-        //intent.putExtra("resume_key", new String[] {});
-        sendBroadcast(intent);
-    }
-
-    public DisplayManager getDisplayManager() {
-        return displayManager;
-    }
-
-    public DeviceInfo getDeviceInfo() {
-        return DeviceInfo.getInstance();
     }
 }

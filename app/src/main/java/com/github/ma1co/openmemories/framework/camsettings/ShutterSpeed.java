@@ -1,19 +1,11 @@
-package com.obsidium.bettermanual;
+package com.github.ma1co.openmemories.framework.camsettings;
 
-import android.util.Pair;
+public class ShutterSpeed {
 
-public class CameraUtil
-{
-    /* These have been determined experimentally, values actually do not need to be exact... */
-    public static final int[] MIN_SHUTTER_VALUES = new int[] {
-            1, 276, 347, 437, 551, 693, 873, 1101, 1385, 1743, 2202, 2771, 3486, 4404, 5540, 6972, 8808,
-            11081, 13945, 17617, 22162, 27888, 35232, 44321, 55777, 70465, 93451, 116628, 145553, 181652,
-            226703, 282927, 354560, 446220, 563719, 709135, 892421, 1127429, 1418242, 1784846,
-            2770094, 3462657, 4328353, 5410477, 6763136, 845956, 10567481, 13209387, 16511770,
-            20639744, 25799712, 32249672
-    };
+    public static final ShutterSpeed s1 = ShutterSpeed.fromSeconds(1);
 
-    public static final int[][] SHUTTER_SPEEDS = new int[][] {
+    /*
+       public static final int[][] SHUTTER_SPEEDS = new int[][] {
             new int[]{1, 4000},
             new int[]{1, 3200},
             new int[]{1, 2500},
@@ -67,37 +59,38 @@ public class CameraUtil
             new int[]{25, 1},
             new int[]{30, 1},
     };
+     */
 
-    public static int getShutterValueIndex(final Pair<Integer,Integer> speed)
-    {
-        return getShutterValueIndex(speed.first, speed.second);
+    private final int nominator, denominator;
+
+    private ShutterSpeed(int nominator, int denominator) {
+        this.nominator = nominator;
+        this.denominator = denominator;
     }
 
-    public static int getShutterValueIndex(int n, int d)
-    {
-        for (int i = 0; i < SHUTTER_SPEEDS.length; ++i)
-        {
-            if (SHUTTER_SPEEDS[i][0] == n &&
-                SHUTTER_SPEEDS[i][1] == d)
-            {
-                return i;
-            }
-        }
-        return -1;
+    public static ShutterSpeed fromSeconds(int sec) {
+        return new ShutterSpeed(sec, 1);
     }
 
-    public static String formatShutterSpeed(int n, int d)
-    {
-        if (n == 1 && d != 2 && d != 1)
-            return String.format("%d/%d", n, d);
-        else if (d == 1)
-        {
-            if (n == 65535)
-                return "BULB";
-            else
-                return String.format("%d\"", n);
+    public static ShutterSpeed fromFraction(int nominator, int denominator) {
+        return new ShutterSpeed(nominator, denominator);
+    }
+
+    public int nominator() {
+        return nominator;
+    }
+
+    public int denominator() {
+        return denominator;
+    }
+
+    public String toString() {
+
+        if (denominator == 1) {
+            return nominator + "sec";
         }
-        else
-            return String.format("%.1f\"", (float) n / (float) d);
+        else {
+            return nominator + "/" + denominator + " sec";
+        }
     }
 }
